@@ -18,6 +18,13 @@ VALID_METHODS = [
 OPENAPI_VERSION = SWAGGER_VERSION = '2.0'
 
 
+def clean_parameter(parameter):
+    if (isinstance(parameter, dict) and
+            'in' in parameter and parameter['in'] == 'path'):
+        parameter['required'] = True
+
+
+
 def clean_operations(operations):
     """Ensure that all parameters with "in" equal to "path" are also required
     as required by the OpenAPI specification, as well as normalizing any
@@ -34,9 +41,7 @@ def clean_operations(operations):
         if 'parameters' in operation:
             parameters = operation.get('parameters')
             for parameter in parameters:
-                if (isinstance(parameter, dict) and
-                        'in' in parameter and parameter['in'] == 'path'):
-                    parameter['required'] = True
+                clean_parameter(parameter)
             operation['parameters'] = [get_ref(p) for p in parameters]
 
 
@@ -57,7 +62,7 @@ class Path(dict):
         clean_operations(operations)
         invalid = {key for key in
                    set(iterkeys(operations)) - set(VALID_METHODS)
-                   if not key.startswith('x-')}
+                   if not (key.startswith('x-') or key == 'parameters')}
         if invalid:
             raise APISpecError(
                 'One or more HTTP methods are invalid: {0}'.format(", ".join(invalid))

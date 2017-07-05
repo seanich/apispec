@@ -73,6 +73,7 @@ PATH_KEYS = set([
     'options',
     'head',
     'patch',
+    'parameters',
 ])
 
 def load_operations_from_docstring(docstring):
